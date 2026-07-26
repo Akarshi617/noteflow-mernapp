@@ -9,11 +9,20 @@ const app = express();
 
 
 // Middleware
+
 app.use(
   cors({
-    origin: "https://react-notesapp-e4m9.vercel.app",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    origin:[
+      "http://localhost:5173",
+      "https://react-notesapp-e4m9.vercel.app"
+    ],
+    methods:[
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    credentials:true
   })
 );
 
@@ -22,10 +31,15 @@ app.use(express.json());
 
 
 
-// Home Route
-app.get("/", (req,res)=>{
+// Test Route
+
+app.get("/",(req,res)=>{
+
     res.send("🚀 Notes API Running");
+
 });
+
+
 
 
 
@@ -34,36 +48,54 @@ app.get("/", (req,res)=>{
 mongoose
 .connect(process.env.MONGO_URI)
 .then(()=>{
+
     console.log("✅ MongoDB Connected");
+
 })
 .catch((err)=>{
-    console.log("❌ MongoDB Error:",err.message);
+
+    console.log(
+      "❌ MongoDB Error:",
+      err.message
+    );
+
 });
 
 
 
 
 
-// GET NOTES
 
-app.get("/api/notes", async(req,res)=>{
+// GET ALL NOTES
+
+app.get("/api/notes",async(req,res)=>{
 
     try{
 
+
         const notes = await Note.find();
 
-        res.json(notes);
+
+        res.status(200).json(notes);
+
 
     }
     catch(error){
 
+
         res.status(500).json({
-            error:error.message
+
+            message:error.message
+
         });
+
 
     }
 
+
 });
+
+
 
 
 
@@ -74,33 +106,93 @@ app.get("/api/notes", async(req,res)=>{
 
 app.post("/api/notes",async(req,res)=>{
 
+
     try{
 
-        const {title,content}=req.body;
 
-
-        const note=new Note({
+        const {
             title,
             content
+        } = req.body;
+
+
+
+        if(!title || !content){
+
+            return res.status(400).json({
+
+                message:"Title and content required"
+
+            });
+
+        }
+
+
+
+
+        const note = new Note({
+
+            title,
+            content
+
         });
 
 
-        const savedNote=await note.save();
+
+        const savedNote = await note.save();
+
 
 
         res.status(201).json(savedNote);
 
 
+
     }
     catch(error){
 
+
         res.status(500).json({
-            error:error.message
+
+            message:error.message
+
         });
+
 
     }
 
+
 });
+
+// UPDATE NOTE
+
+app.put("/api/notes/:id", async(req,res)=>{
+
+    try{
+    
+    const updatedNote =
+    await Note.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {
+    new:true
+    }
+    );
+    
+    
+    res.json(updatedNote);
+    
+    
+    }
+    catch(error){
+    
+    res.status(500).json({
+    error:error.message
+    });
+    
+    }
+    
+    
+    });
 
 
 
@@ -109,27 +201,54 @@ app.post("/api/notes",async(req,res)=>{
 
 // DELETE NOTE
 
-app.delete("/api/notes/:id",async(req,res)=>{
-
-    try{
-
-
-        await Note.findByIdAndDelete(req.params.id);
+app.delete(
+"/api/notes/:id",
+async(req,res)=>{
 
 
-        res.json({
-            message:"Deleted Successfully"
-        });
+try{
 
 
-    }
-    catch(error){
+const deletedNote =
+await Note.findByIdAndDelete(
+req.params.id
+);
 
-        res.status(500).json({
-            error:error.message
-        });
 
-    }
+
+if(!deletedNote){
+
+return res.status(404).json({
+
+message:"Note not found"
+
+});
+
+}
+
+
+
+res.json({
+
+message:"Deleted Successfully"
+
+});
+
+
+
+}
+catch(error){
+
+
+res.status(500).json({
+
+message:error.message
+
+});
+
+
+}
+
 
 });
 
@@ -138,13 +257,19 @@ app.delete("/api/notes/:id",async(req,res)=>{
 
 
 
-const PORT=process.env.PORT || 5001;
+
+
+const PORT =
+process.env.PORT || 5001;
+
 
 
 app.listen(PORT,()=>{
 
-    console.log(
-        `🚀 Server running at http://localhost:${PORT}`
-    );
+
+console.log(
+`🚀 Server running at http://localhost:${PORT}`
+);
+
 
 });

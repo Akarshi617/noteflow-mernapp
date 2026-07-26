@@ -1,483 +1,595 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+const API_URL = import.meta.env.VITE_API_URL;
 
+function App(){
 
-function App() {
 
+const API_URL = import.meta.env.VITE_API_URL;
 
-  const [notes, setNotes] = useState([]);
 
-  const [title,setTitle] = useState("");
-  const [content,setContent] = useState("");
 
-  const [favorites,setFavorites] = useState([]);
-  const [trash,setTrash] = useState([]);
+const [notes,setNotes]=useState([]);
 
-  const [page,setPage] = useState("dashboard");
+const [title,setTitle]=useState("");
+const [content,setContent]=useState("");
 
-  const [search,setSearch] = useState("");
+const [favorites,setFavorites]=useState([]);
 
-  const [user,setUser] = useState(
-    localStorage.getItem("user")
-  );
+const [trash,setTrash]=useState([]);
 
+const [page,setPage]=useState("dashboard");
 
-  const [loginBox,setLoginBox] = useState(false);
-  const [signupBox,setSignupBox] = useState(false);
+const [search,setSearch]=useState("");
 
+const [loading,setLoading]=useState(false);
 
-  const [name,setName] = useState("");
-  const [email,setEmail] = useState("");
-  const [password,setPassword] = useState("");
+const [error,setError]=useState("");
 
 
 
+const [user,setUser]=useState(
+localStorage.getItem("user")
+);
 
-  // Fetch Notes From Backend
 
-  const fetchNotes = async()=>{
 
-    try{
+const [loginBox,setLoginBox]=useState(false);
 
-      const res = await fetch(
-        "http://localhost:5001/api/notes"
-      );
+const [signupBox,setSignupBox]=useState(false);
 
-      const data = await res.json();
 
-      setNotes(data);
 
-    }
-    catch(error){
+const [name,setName]=useState("");
 
-      console.log(error);
+const [email,setEmail]=useState("");
 
-    }
+const [password,setPassword]=useState("");
 
-  }
 
 
 
-  useEffect(()=>{
+// GET NOTES
 
-    fetchNotes();
+const fetchNotes=async()=>{
 
-  },[]);
+try{
 
 
+setLoading(true);
 
 
+const res=await fetch(
+`${API_URL}/api/notes`
+);
 
-  // Add Note
 
+const data=await res.json();
 
-  const addNote = async()=>{
 
+setNotes(data);
 
-    if(!title || !content){
 
-      alert("Please fill all fields");
+}
 
-      return;
+catch(err){
 
-    }
+setError("Backend not connected");
 
+}
 
-    await fetch(
-      "http://localhost:5001/api/notes",
-      {
 
-        method:"POST",
+finally{
 
-        headers:{
-          "Content-Type":"application/json"
-        },
+setLoading(false);
 
+}
 
-        body:JSON.stringify({
 
-          title,
-          content
+};
 
-        })
 
-      }
-    );
 
 
-    setTitle("");
+useEffect(()=>{
 
-    setContent("");
+fetchNotes();
 
-    fetchNotes();
+},[]);
 
 
-  }
 
 
 
+// ADD NOTE
 
 
-  // Favorite
+const addNote=async()=>{
 
 
-  const toggleFavorite=(note)=>{
+if(!title || !content){
 
+alert("Please fill all fields");
 
-    const exist =
-    favorites.find(
-      item=>item._id===note._id
-    );
+return;
 
+}
 
-    if(exist){
 
 
-      setFavorites(
-        favorites.filter(
-          item=>item._id!==note._id
-        )
-      );
+try{
 
 
-    }
+const res=await fetch(
 
-    else{
-
-
-      setFavorites([
-        ...favorites,
-        note
-      ]);
-
-
-    }
-
-
-  }
-
-
-
-
-
-  // Delete to Trash
-
-
-  const deleteNote=(note)=>{
-
-
-    setTrash([
-      ...trash,
-      note
-    ]);
-
-
-    setNotes(
-      notes.filter(
-        item=>item._id!==note._id
-      )
-    );
-
-
-  }
-
-
-
-
-
-
-
-  // Signup
-
-
-  const signup=()=>{
-
-
-    if(!name || !email || !password){
-
-      alert("Fill all details");
-
-      return;
-
-    }
-
-
-    localStorage.setItem(
-      "user",
-      name
-    );
-
-
-    setUser(name);
-
-
-    setSignupBox(false);
-
-
-    alert("Signup Successful");
-
-
-  }
-
-
-
-
-
-
-
-  // Login
-
-
-  const login=()=>{
-
-
-    if(!email || !password){
-
-      alert("Enter email and password");
-
-      return;
-
-    }
-
-
-    let savedUser =
-    localStorage.getItem("user");
-
-
-    if(savedUser){
-
-
-      setUser(savedUser);
-
-      setLoginBox(false);
-
-
-      alert("Login Successful");
-
-
-    }
-
-    else{
-
-      alert("Please Signup First");
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-  // Logout
-
-
-  const logout=()=>{
-
-
-    localStorage.removeItem(
-      "user"
-    );
-
-
-    setUser(null);
-
-
-  }
-
-
-
-
-
-
-
-  let displayNotes = notes;
-
-
-
-  if(page==="favorites"){
-
-    displayNotes=favorites;
-
-  }
-
-
-
-  if(page==="trash"){
-
-    displayNotes=trash;
-
-  }
-
-
-
-
-
-  displayNotes =
-  displayNotes.filter(
-
-    note=>
-
-    note.title
-    .toLowerCase()
-    .includes(
-      search.toLowerCase()
-    )
-
-  );
-
-
-
-
-
-
-
-return (
-
-<div className="dashboard">
-
-
-
-{/* Sidebar */}
-
-
-<div className="sidebar">
-
-
-<h1>
-✨ NoteFlow
-</h1>
-
-
-<p>
-Capture. Organize. Remember.
-</p>
-
-
-
-<div className="menu">
-
-
-<button
-onClick={()=>setPage("dashboard")}
->
-🏠 Dashboard
-</button>
-
-
-<button
-onClick={()=>setPage("notes")}
->
-📝 My Notes
-</button>
-
-
-
-<button
-onClick={()=>setPage("favorites")}
->
-⭐ Favorites
-</button>
-
-
-
-<button
-onClick={()=>setPage("trash")}
->
-🗑 Trash
-</button>
-
-
-
-</div>
-
-
-
-
-
-<div className="auth">
-
+`${API_URL}/api/notes`,
 
 {
 
-user ?
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json"
+
+},
 
 
-<div className="profile">
+body:JSON.stringify({
+
+title,
+
+content
+
+})
+
+}
 
 
-<div className="avatar">
-
-{user
-.slice(0,2)
-.toUpperCase()}
-
-</div>
-
-
-<h3>
-{user}
-</h3>
-
-
-<button
-onClick={logout}
->
-Logout
-</button>
-
-
-</div>
+);
 
 
 
-:
-
-<>
+const data=await res.json();
 
 
-<button
-onClick={()=>setLoginBox(true)}
->
-Login
-</button>
+
+setNotes([
+
+...notes,
+
+data
+
+]);
 
 
-<button
-onClick={()=>setSignupBox(true)}
->
-Signup
-</button>
+
+setTitle("");
+
+setContent("");
 
 
-</>
+
+alert("Note Added Successfully ✅");
 
 
 }
 
 
 
-</div>
+catch(err){
+
+alert("Backend Error");
+
+}
+
+
+};
 
 
 
-</div>
+
+
+// DELETE NOTE
+
+
+const deleteNote=async(note)=>{
+
+
+try{
+
+
+await fetch(
+
+`${API_URL}/api/notes/${note._id}`,
+
+{
+
+method:"DELETE"
+
+}
+
+);
+
+
+
+setTrash([
+
+...trash,
+
+note
+
+]);
+
+
+
+setNotes(
+
+notes.filter(
+
+item=>item._id!==note._id
+
+)
+
+);
+
+
+
+}
+
+
+
+catch(err){
+
+console.log(err);
+
+}
+
+
+
+};
 
 
 
 
 
+// FAVORITE
+
+
+const toggleFavorite=(note)=>{
+
+
+const exist=favorites.find(
+
+item=>item._id===note._id
+
+);
 
 
 
-{/* Main */}
+if(exist){
 
+
+setFavorites(
+
+favorites.filter(
+
+item=>item._id!==note._id
+
+)
+
+);
+
+
+}
+
+else{
+
+
+setFavorites([
+
+...favorites,
+
+note
+
+]);
+
+
+}
+
+
+};
+// SIGNUP
+
+const signup=()=>{
+
+
+  if(!name || !email || !password){
+  
+  alert("Fill all details");
+  
+  return;
+  
+  }
+  
+  
+  localStorage.setItem(
+  "user",
+  name
+  );
+  
+  
+  setUser(name);
+  
+  setSignupBox(false);
+  
+  
+  alert("Signup Successful");
+  
+  
+  };
+  
+  
+  
+  
+  // LOGIN
+  
+  const login=()=>{
+  
+  
+  const savedUser =
+  localStorage.getItem("user");
+  
+  
+  if(savedUser){
+  
+  
+  setUser(savedUser);
+  
+  setLoginBox(false);
+  
+  
+  alert("Login Successful");
+  
+  
+  }
+  
+  else{
+  
+  
+  alert("Please Signup First");
+  
+  
+  }
+  
+  
+  
+  };
+  
+  
+  
+  
+  
+  // LOGOUT
+  
+  
+  const logout=()=>{
+  
+  
+  localStorage.removeItem(
+  "user"
+  );
+  
+  
+  setUser(null);
+  
+  
+  };
+  
+  
+  
+  
+  
+  // FILTER NOTES
+  
+  
+  let displayNotes = notes;
+  
+  
+  
+  if(page==="favorites"){
+  
+  displayNotes=favorites;
+  
+  }
+  
+  
+  
+  if(page==="trash"){
+  
+  displayNotes=trash;
+  
+  }
+  
+  
+  
+  
+  displayNotes = displayNotes.filter(note=>
+  
+  note.title
+  .toLowerCase()
+  .includes(
+  search.toLowerCase()
+  )
+  
+  );
+  
+  
+  
+  
+  
+  return (
+  
+  <div className="dashboard">
+  
+  
+  
+  {/* SIDEBAR */}
+  
+  
+  <div className="sidebar">
+  
+  
+  
+  <h1>
+  ✨ NoteFlow
+  </h1>
+  
+  
+  <p>
+  Capture. Organize. Remember.
+  </p>
+  
+  
+  
+  
+  <div className="menu">
+  
+  
+  
+  <button
+  onClick={()=>setPage("dashboard")}
+  >
+  
+  🏠 Dashboard
+  
+  </button>
+  
+  
+  
+  
+  <button
+  onClick={()=>setPage("notes")}
+  >
+  
+  📝 My Notes
+  
+  </button>
+  
+  
+  
+  
+  <button
+  onClick={()=>setPage("favorites")}
+  >
+  
+  ⭐ Favorites
+  
+  </button>
+  
+  
+  
+  
+  <button
+  onClick={()=>setPage("trash")}
+  >
+  
+  🗑 Trash
+  
+  </button>
+  
+  
+  
+  </div>
+  
+  
+  
+  
+  
+  
+  <div className="auth">
+  
+  
+  
+  {
+  user ?
+  
+  <div className="profile">
+  
+  
+  <div className="avatar">
+  
+  {
+  user
+  .slice(0,2)
+  .toUpperCase()
+  
+  }
+  
+  </div>
+  
+  
+  
+  <h3>
+  {user}
+  </h3>
+  
+  
+  
+  
+  <button
+  onClick={logout}
+  >
+  
+  Logout
+  
+  </button>
+  
+  
+  
+  </div>
+  
+  
+  
+  :
+  
+  <>
+  
+  
+  <button
+  onClick={()=>setLoginBox(true)}
+  >
+  
+  Login
+  
+  </button>
+  
+  
+  
+  
+  <button
+  onClick={()=>setSignupBox(true)}
+  >
+  
+  Signup
+  
+  </button>
+  
+  
+  </>
+  
+  
+  }
+  
+  
+  
+  </div>
+  
+  
+  </div>
+{/* MAIN CONTENT */}
 
 <div className="main">
-
 
 
 <div className="topbar">
@@ -488,15 +600,14 @@ Welcome {user || "Guest"} 👋
 </h1>
 
 
+
 <input
 
-placeholder="🔍 Search notes..."
+placeholder="🔍 Search notes"
 
 value={search}
 
-onChange={
-e=>setSearch(e.target.value)
-}
+onChange={(e)=>setSearch(e.target.value)}
 
 />
 
@@ -507,8 +618,7 @@ e=>setSearch(e.target.value)
 
 
 
-
-
+{/* CARDS */}
 
 <div className="cards">
 
@@ -527,7 +637,6 @@ Total Notes
 
 
 
-
 <div>
 
 <h2>
@@ -539,7 +648,6 @@ Favorites
 </p>
 
 </div>
-
 
 
 
@@ -556,7 +664,6 @@ Productivity
 </div>
 
 
-
 </div>
 
 
@@ -565,10 +672,7 @@ Productivity
 
 
 
-
-
-{/* Create Note */}
-
+{/* CREATE NOTE */}
 
 
 {
@@ -583,17 +687,17 @@ Create New Note
 </h2>
 
 
+
 <input
 
 placeholder="Note title"
 
 value={title}
 
-onChange={
-e=>setTitle(e.target.value)
-}
+onChange={(e)=>setTitle(e.target.value)}
 
 />
+
 
 
 
@@ -603,9 +707,7 @@ placeholder="Write your note..."
 
 value={content}
 
-onChange={
-e=>setContent(e.target.value)
-}
+onChange={(e)=>setContent(e.target.value)}
 
 />
 
@@ -632,31 +734,39 @@ onClick={addNote}
 
 
 
+{
+loading &&
+
+<h3>
+Loading Notes...
+</h3>
+
+}
+
+
+
+{
+error &&
+
+<h3>
+{error}
+</h3>
+
+}
+
 
 
 
 
 <h2>
-📚 
-{
-page==="favorites"
-?
-"Favorite Notes"
-:
-page==="trash"
-?
-"Trash Notes"
-:
-"All Notes"
-}
-
+📚 Notes
 </h2>
 
 
 
 
-
 <div className="notes">
+
 
 
 {
@@ -665,8 +775,11 @@ displayNotes.map(note=>(
 
 
 <div
+
 className="note-card"
+
 key={note._id}
+
 >
 
 
@@ -675,9 +788,11 @@ key={note._id}
 </h3>
 
 
+
 <p>
 {note.content}
 </p>
+
 
 
 
@@ -685,7 +800,9 @@ key={note._id}
 
 
 <button
+
 onClick={()=>toggleFavorite(note)}
+
 >
 
 ⭐
@@ -695,7 +812,9 @@ onClick={()=>toggleFavorite(note)}
 
 
 <button
+
 onClick={()=>deleteNote(note)}
+
 >
 
 🗑
@@ -710,6 +829,7 @@ onClick={()=>deleteNote(note)}
 </div>
 
 
+
 ))
 
 
@@ -721,8 +841,6 @@ onClick={()=>deleteNote(note)}
 
 
 
-
-
 </div>
 
 
@@ -732,8 +850,8 @@ onClick={()=>deleteNote(note)}
 
 
 
+{/* LOGIN MODAL */}
 
-{/* Login Modal */}
 
 
 {
@@ -750,11 +868,13 @@ Login
 
 
 <input
+
 placeholder="Email"
-onChange={
-e=>setEmail(e.target.value)
-}
-/>
+
+onChange={(e)=>setEmail(e.target.value)}
+
+ />
+
 
 
 <input
@@ -763,18 +883,22 @@ type="password"
 
 placeholder="Password"
 
-onChange={
-e=>setPassword(e.target.value)
-}
+onChange={(e)=>setPassword(e.target.value)}
 
-/>
+ />
+
 
 
 <button
+
 onClick={login}
+
 >
+
 Login
+
 </button>
+
 
 
 </div>
@@ -788,7 +912,7 @@ Login
 
 
 
-{/* Signup Modal */}
+{/* SIGNUP MODAL */}
 
 
 
@@ -810,11 +934,9 @@ Signup
 
 placeholder="Name"
 
-onChange={
-e=>setName(e.target.value)
-}
+onChange={(e)=>setName(e.target.value)}
 
-/>
+ />
 
 
 
@@ -822,11 +944,9 @@ e=>setName(e.target.value)
 
 placeholder="Email"
 
-onChange={
-e=>setEmail(e.target.value)
-}
+onChange={(e)=>setEmail(e.target.value)}
 
-/>
+ />
 
 
 
@@ -836,37 +956,24 @@ type="password"
 
 placeholder="Password"
 
-onChange={
-e=>setPassword(e.target.value)
-}
+onChange={(e)=>setPassword(e.target.value)}
 
-/>
+ />
 
 
 
 <button
+
 onClick={signup}
+
 >
+
 Create Account
+
 </button>
-
-
-
 </div>
-
-
 }
-
-
-
-
 </div>
-
-
-);
-
-
+)
 }
-
-
 export default App;
