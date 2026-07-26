@@ -14,7 +14,7 @@ app.use(
   cors({
     origin:[
       "http://localhost:5173",
-      "https://react-notesapp-e4m9.vercel.app"
+      "https://noteflow-mernapp.vercel.app"
     ],
     methods:[
       "GET",
@@ -25,7 +25,6 @@ app.use(
     credentials:true
   })
 );
-
 
 app.use(express.json());
 
