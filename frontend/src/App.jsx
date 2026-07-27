@@ -118,6 +118,28 @@ function App() {
     }
   };
 
+  // ✅ REMOVE FROM TRASH (Permanent Remove - single note)
+  const removeFromTrash = (note) => {
+    const confirmDelete = window.confirm(
+      "Is note ko trash se hamesha ke liye remove karna hai?"
+    );
+    if (!confirmDelete) return;
+
+    setTrash(trash.filter(item => item._id !== note._id));
+  };
+
+  // ✅ EMPTY TRASH (Remove All at once)
+  const emptyTrash = () => {
+    if (trash.length === 0) return;
+
+    const confirmDelete = window.confirm(
+      "Trash ki saari files hamesha ke liye remove karni hain?"
+    );
+    if (!confirmDelete) return;
+
+    setTrash([]);
+  };
+
   // ✅ SIGNUP
   const signup = () => {
     if (!name || !email || !password) {
@@ -229,6 +251,13 @@ function App() {
           </div>
         )}
 
+        {/* EMPTY TRASH */}
+        {page === "trash" && trash.length > 0 && (
+          <div className="create">
+            <button onClick={emptyTrash}>🧹 Empty Trash</button>
+          </div>
+        )}
+
         {loading && <h3>Loading Notes...</h3>}
         {error && <h3>{error}</h3>}
 
@@ -241,8 +270,14 @@ function App() {
               <p>{note.content}</p>
 
               <div className="actions">
-                <button onClick={() => toggleFavorite(note)}>⭐</button>
-                <button onClick={() => deleteNote(note)}>🗑</button>
+                {page === "trash" ? (
+                  <button onClick={() => removeFromTrash(note)}>❌ Remove</button>
+                ) : (
+                  <>
+                    <button onClick={() => toggleFavorite(note)}>⭐</button>
+                    <button onClick={() => deleteNote(note)}>🗑</button>
+                  </>
+                )}
               </div>
             </div>
           ))}
