@@ -1,12 +1,9 @@
- import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-const API_URL = import.meta.env.VITE_API_URL;
 
 function App(){
 
-
 const API_URL = import.meta.env.VITE_API_URL;
-
 
 
 const [notes,setNotes]=useState([]);
@@ -51,43 +48,23 @@ const [password,setPassword]=useState("");
 
 // GET NOTES
 
-const fetchNotes=async()=>{
+const fetchNotes = async () => {
+  try {
+    setLoading(true);
 
-try{
+    console.log("API:", API_URL);
 
+    
+    const data = await res.json();
 
-setLoading(true);
+    setNotes(data);
 
-
-const res=await fetch(
-`${API_URL}/api/notes`
-);
-
-
-const data=await res.json();
-
-
-setNotes(data);
-
-
-}
-
-catch(err){
-
-setError("Backend not connected");
-
-}
-
-
-finally{
-
-setLoading(false);
-
-}
-
-
+  } catch (err) {
+    setError("Backend not connected");
+  } finally {
+    setLoading(false);
+  }
 };
-
 
 
 
@@ -101,91 +78,43 @@ fetchNotes();
 
 
 
-// ADD NOTE
+/const addNote = async () => {
 
+  if (!title || !content) {
+    alert("Please fill all fields");
+    return;
+  }
 
-const addNote=async()=>{
+  try {
 
+    const res = await fetch(`${API_URL}/api/notes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        title,
+        content
+      })
+    });
 
-if(!title || !content){
+    if (!res.ok) {
+      throw new Error("Failed to add note");
+    }
 
-alert("Please fill all fields");
+    // ✅ refresh notes from backend
+    await fetchNotes();
 
-return;
+    setTitle("");
+    setContent("");
 
-}
+    alert("Note Added Successfully ✅");
 
-
-
-try{
-
-
-const res=await fetch(
-
-`${API_URL}/api/notes`,
-
-{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":"application/json"
-
-},
-
-
-body:JSON.stringify({
-
-title,
-
-content
-
-})
-
-}
-
-
-);
-
-
-
-const data=await res.json();
-
-
-
-setNotes([
-
-...notes,
-
-data
-
-]);
-
-
-
-setTitle("");
-
-setContent("");
-
-
-
-alert("Note Added Successfully ✅");
-
-
-}
-
-
-
-catch(err){
-
-alert("Backend Error");
-
-}
-
-
+  } catch (err) {
+    console.log(err);
+    alert("Backend Error ❌");
+  }
 };
-
 
 
 
